@@ -82,16 +82,26 @@ async def on_guild_join(guild):
         if channel and channel.permissions_for(guild.me).send_messages:
             await channel.send("Berrie has just joined the server! Nice!")
 
+
+SPECIAL_USER_ID = os.getenv('SPECIAL_USER_ID')  # Set this in your .env as the Discord user ID
+special_responses = ["nope", "not feeling like it"]
+
 @bot.command()
 async def fortune(ctx):
-
-
     # Only send output to the specified channel
     if CHANNEL_ID:
         channel = ctx.guild.get_channel(int(CHANNEL_ID))
         if channel and channel.permissions_for(ctx.guild.me).send_messages:
-            message = random.choice(luck_messages)
-            await channel.send(f"{ctx.author.mention} {message}")
+            is_special_user = SPECIAL_USER_ID and str(ctx.author.id) == str(SPECIAL_USER_ID)
+            if is_special_user:
+                if random.randint(1, 20) == 1:
+                    message = random.choice(luck_messages)
+                    await channel.send(f"{ctx.author.mention} {message}")
+                else:
+                    await channel.send(f"{ctx.author.mention} {random.choice(special_responses)}")
+            else:
+                message = random.choice(luck_messages)
+                await channel.send(f"{ctx.author.mention} {message}")
             
 
 @bot.event
@@ -100,8 +110,20 @@ async def on_message(message):
 
     # Only print messages from the specified channel
     if CHANNEL_ID and str(message.channel.id) == str(CHANNEL_ID):
-        # Debug only
-        # print(f"[CHANNEL {CHANNEL_ID}] {message.author}: {message.content}")
+        content_lower = message.content.lower()
+        response = None
+        debug_case = None
+        if "maybe" in content_lower:
+            response = "maybe stfu?"
+            debug_case = "maybe"
+        elif "what" in content_lower:
+            response = "what?"
+            debug_case = "what"
+        if response:
+            try:
+                await message.channel.send(response)
+            except Exception as e:
+                print(f"[DEBUG][{debug_case}] Failed to send '{response}': {e}")
         # Randomly react with 😂 to about 1 in 10 messages
         if random.randint(1, 10) == 1:
             try:

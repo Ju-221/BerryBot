@@ -123,7 +123,7 @@ async def fortune(ctx):
             else:
                 message = random.choice(luck_messages)
                 await channel.send(f"{message}")
-            
+
 
 @bot.event
 async def on_message(message):
@@ -149,12 +149,18 @@ async def on_message(message):
             elif "what" in content_lower:
                 response = "what?"
                 debug_case = "what"
+            elif "67" in content_lower:
+                response = "⁶🤷‍♀️⁷"
+                debug_case = "67"
+            elif "mpreg" in content_lower:
+                response = "🫃"
+                debug_case = "mpreg"
             if response:
                 try:
                     await message.channel.send(response)
                 except Exception as e:
                     print(f"[DEBUG][{debug_case}] Failed to send '{response}': {e}")
-                    
+
             # Randomly react with 😂 to about 1 in 10 messages
             if random.randint(1, 10) == 1:
                 try:
@@ -162,13 +168,13 @@ async def on_message(message):
                 except Exception as e:
                     print(f"[DEBUG] Failed to add reaction: {e}")
 
-#if there's an error with a command, print it out instead of crashing the bot
+# if there's an error with a command, print it out instead of crashing the bot
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):
         print(f"command unrecognized {ctx.message.content}")
     else:
         raise error
-        
+
 if __name__ == "__main__":
     bot.run(TOKEN)

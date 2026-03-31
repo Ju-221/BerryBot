@@ -15,6 +15,7 @@ load_dotenv()
 
 TOKEN = os.getenv('DISCORD_TOKEN')
 CHANNEL_ID = os.getenv('DISCORD_CHANNEL_ID')
+DEBUG_MODE = os.getenv('DEBUG_MODE')
 
 # List of luck messages
 luck_messages = [
@@ -46,15 +47,29 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
-    # Send welcome message only to the specified channel in each guild
-    for guild in bot.guilds:
-        if CHANNEL_ID:
-            channel = guild.get_channel(int(CHANNEL_ID))
-            if channel and channel.permissions_for(guild.me).send_messages:
-                try:
-                    await channel.send("berrie connected: nice chat")
-                except Exception:
-                    pass
+    #debug use only
+    if DEBUG_MODE:
+        print("all tests passed, succesfully deployed")
+        for guild in bot.guilds:
+            if CHANNEL_ID:
+                channel = guild.get_channel(int(CHANNEL_ID))
+                if channel and channel.permissions_for(guild.me).send_messages:
+                    try:
+                        await channel.send("all tests passed, succesfully deployed")
+                    except Exception:
+                        pass
+        import sys
+        sys.exit(0)
+    else:
+        # Normal welcome message
+        for guild in bot.guilds:
+            if CHANNEL_ID:
+                channel = guild.get_channel(int(CHANNEL_ID))
+                if channel and channel.permissions_for(guild.me).send_messages:
+                    try:
+                        await channel.send("berrie connected: nice chat")
+                    except Exception:
+                        pass
     
 @bot.event
 async def on_guild_join(guild):

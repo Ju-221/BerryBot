@@ -1,5 +1,3 @@
-
-
 import os
 import random
 import sys
@@ -87,6 +85,16 @@ async def on_ready():
         meow_task.start()
     if DEBUG_MODE:
         print("all tests passed, succesfully deployed")
+    else:
+        # Send welcome message to the channel
+        for guild in bot.guilds:
+            if CHANNEL_ID:
+                channel = guild.get_channel(int(CHANNEL_ID))
+                if channel and channel.permissions_for(guild.me).send_messages:
+                    try:
+                        await channel.send("berrie connected: nice chat")
+                    except Exception:
+                        pass
 
 @bot.command()
 async def fortune(ctx):
@@ -149,6 +157,13 @@ async def on_message(message):
                 except Exception as e:
                     print(f"[DEBUG] Failed to add reaction: {e}")
 
+#if there's an error with a command, print it out instead of crashing the bot
+@bot.event
+async def on_command_error(ctx, error):
+    if isinstance(error, commands.CommandNotFound):
+        print(f"command unrecognized {ctx.message.content}")
+    else:
+        raise error
         
 if __name__ == "__main__":
     bot.run(TOKEN)

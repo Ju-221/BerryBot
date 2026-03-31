@@ -79,47 +79,14 @@ async def meow_task():
                         pass
 
 
+
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
-    # Debug use only
+    if not meow_task.is_running():
+        meow_task.start()
     if DEBUG_MODE:
         print("all tests passed, succesfully deployed")
-        for guild in bot.guilds:
-            if CHANNEL_ID:
-                channel = guild.get_channel(int(CHANNEL_ID))
-
-                if channel and channel.permissions_for(guild.me).send_messages:
-                    @bot.event
-                    async def on_message(message):
-                        # Prevent responding to itself or any user with the Bot role
-                        if message.author == bot.user:
-                            return
-                        if hasattr(message.author, 'roles') and any(getattr(role, 'id', None) == BOT_ROLE_ID for role in getattr(message.author, 'roles', [])):
-                            return
-                        # Only print messages from the specified channel
-                        if CHANNEL_ID and str(message.channel.id) == str(CHANNEL_ID):
-                            content_lower = message.content.lower()
-                            response = None
-                            debug_case = None
-                            if "maybe" in content_lower:
-                                response = "maybe stfu?"
-                                debug_case = "maybe"
-                            elif "what" in content_lower:
-                                response = "what?"
-                                debug_case = "what"
-                            if response:
-                                try:
-                                    await message.channel.send(response)
-                                except Exception as e:
-                                    print(f"[DEBUG][{debug_case}] Failed to send '{response}': {e}")
-                            # Randomly react with 😂 to about 1 in 10 messages
-                            if random.randint(1, 10) == 1:
-                                try:
-                                    await message.add_reaction("😂")
-                                except Exception as e:
-                                    print(f"[DEBUG] Failed to add reaction: {e}")
-                        await bot.process_commands(message)
 
 @bot.command()
 async def fortune(ctx):
@@ -147,34 +114,40 @@ async def fortune(ctx):
 
 @bot.event
 async def on_message(message):
+    # Prevent responding to itself or any user with the Bot role
+    if message.author == bot.user:
+        return
+    if hasattr(message.author, 'roles') and any(getattr(role, 'id', None) == BOT_ROLE_ID for role in getattr(message.author, 'roles', [])):
+        return
+    # Always process commands
 
-
-    # Only print messages from the specified channel
-    if CHANNEL_ID and str(message.channel.id) == str(CHANNEL_ID):
-        # Ignore the bot's own messages
-        if message.author == bot.user:
-            await bot.process_commands(message)
-            return   
-        
-        content_lower = message.content.lower()
-        response = None
-        debug_case = None
-        if "maybe" in content_lower:
-            response = "maybe stfu?"
-        elif "what" in content_lower:
-            response = "what?"
-        if response:
-            try:
-                await message.channel.send(response)
-            except Exception as e:
-                print(f"[DEBUG][{debug_case}] Failed to send '{response}': {e}")
-        # Randomly react with 😂 to about 1 in 10 messages
-        if random.randint(1, 10) == 1:
-            try:
-                await message.add_reaction("😂")
-            except Exception as e:
-                print(f"[DEBUG] Failed to add reaction: {e}")
     await bot.process_commands(message)
+    # Only print messages from the specified channel (for non-command reactions)
+
+    if CHANNEL_ID and str(message.channel.id) == str(CHANNEL_ID):
+        # Only react to non-command messages (not starting with '!')
+        if not message.content.startswith('!'):
+            content_lower = message.content.lower()
+            response = None
+            debug_case = None
+            if "maybe" in content_lower:
+                response = "maybe stfu?"
+                debug_case = "maybe"
+            elif "what" in content_lower:
+                response = "what?"
+                debug_case = "what"
+            if response:
+                try:
+                    await message.channel.send(response)
+                except Exception as e:
+                    print(f"[DEBUG][{debug_case}] Failed to send '{response}': {e}")
+                    
+            # Randomly react with 😂 to about 1 in 10 messages
+            if random.randint(1, 10) == 1:
+                try:
+                    await message.add_reaction("😂")
+                except Exception as e:
+                    print(f"[DEBUG] Failed to add reaction: {e}")
 
         
 if __name__ == "__main__":

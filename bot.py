@@ -74,12 +74,20 @@ async def fortune(ctx):
             await channel.send(f"{ctx.author.mention} {message}")
             #await channel.send("nice ^")
             
-#@bot.event
-#async def on_message(message):
-#    # Only print messages from the specified channel
-#    if CHANNEL_ID and str(message.channel.id) == str(CHANNEL_ID):
-#        print(f"[CHANNEL {CHANNEL_ID}] {message.author}: {message.content}")
-#    await bot.process_commands(message)
+
+@bot.event
+async def on_message(message):
+    # Only print messages from the specified channel
+    if CHANNEL_ID and str(message.channel.id) == str(CHANNEL_ID):
+        #debug only
+        #print(f"[CHANNEL {CHANNEL_ID}] {message.author}: {message.content}")
+        # Randomly react with 😂 to about 1 in 10 messages
+        if random.randint(1, 10) == 1:
+            try:
+                await message.add_reaction("😂")
+            except Exception as e:
+                print(f"[DEBUG] Failed to add reaction: {e}")
+    await bot.process_commands(message)
 
         
 if __name__ == "__main__":

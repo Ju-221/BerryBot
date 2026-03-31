@@ -1,6 +1,7 @@
 # BerryBot
 
 A minimal Discord bot in Python that responds to  `!fortune` commands in a specified channel.
+[![Test BerryBot](https://github.com/Ju-221/BerryBot/actions/workflows/test.yml/badge.svg)](https://github.com/Ju-221/BerryBot/actions/workflows/test.yml)
 
 ## Setup
 1. Clone the repo and create a virtual environment.

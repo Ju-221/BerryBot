@@ -8,9 +8,10 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv()
 
+
 # Run pip install -r requirements.txt to install the required libraries
-# please open this as a venv
-# fill out the .env with the token and channel id you want the bot to respond to
+# Please open this as a venv
+# Fill out the .env with the token and channel id you want the bot to respond to
 
 
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -47,7 +48,7 @@ bot = commands.Bot(command_prefix='!', intents=intents)
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
-    #debug use only
+    # Debug use only
     if DEBUG_MODE:
         print("all tests passed, succesfully deployed")
         for guild in bot.guilds:
@@ -73,6 +74,7 @@ async def on_ready():
     
 @bot.event
 async def on_guild_join(guild):
+
     channel_id = os.getenv('DISCORD_CHANNEL_ID')
     if channel_id:
         channel = guild.get_channel(int(channel_id))
@@ -81,21 +83,22 @@ async def on_guild_join(guild):
 
 @bot.command()
 async def fortune(ctx):
+
     # Only send output to the specified channel
     if CHANNEL_ID:
         channel = ctx.guild.get_channel(int(CHANNEL_ID))
         if channel and channel.permissions_for(ctx.guild.me).send_messages:
             message = random.choice(luck_messages)
             await channel.send(f"{ctx.author.mention} {message}")
-            #await channel.send("nice ^")
             
 
 @bot.event
 async def on_message(message):
+
     # Only print messages from the specified channel
     if CHANNEL_ID and str(message.channel.id) == str(CHANNEL_ID):
-        #debug only
-        #print(f"[CHANNEL {CHANNEL_ID}] {message.author}: {message.content}")
+        # Debug only
+        # print(f"[CHANNEL {CHANNEL_ID}] {message.author}: {message.content}")
         # Randomly react with 😂 to about 1 in 10 messages
         if random.randint(1, 10) == 1:
             try:

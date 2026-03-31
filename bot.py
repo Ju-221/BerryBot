@@ -1,8 +1,6 @@
 import os
 import random
-import sys
 import discord
-import asyncio
 from discord.ext import commands
 from discord.ext import tasks
 from dotenv import load_dotenv
@@ -15,7 +13,7 @@ load_dotenv()
 # Please open this as a venv
 # Fill out the .env with the token and channel id you want the bot to respond to
 
-#.env stuff, see .env.example for reference
+# .env stuff, see .env.example for reference
 TOKEN = os.getenv('DISCORD_TOKEN')
 CHANNEL_ID = os.getenv('DISCORD_CHANNEL_ID')
 DEBUG_MODE = os.getenv('DEBUG_MODE')
@@ -54,13 +52,6 @@ intents = discord.Intents.default()
 intents.message_content = True
 bot = commands.Bot(command_prefix='!', intents=intents)
 
-# Background task to send 'meow' every ~4 hours (randomized)
-@bot.event
-async def on_ready():
-    print(f'Logged in as {bot.user}')
-    if not meow_task.is_running():
-        meow_task.start()
-    # ...existing code...
 
 # Task: send 'meow' at random intervals averaging 4 hours
 @tasks.loop(hours=1)
@@ -112,18 +103,26 @@ async def fortune(ctx):
     if CHANNEL_ID:
         channel = ctx.guild.get_channel(int(CHANNEL_ID))
         if channel and channel.permissions_for(ctx.guild.me).send_messages:
-            is_special_user = SPECIAL_USER_ID and str(ctx.author.id) == str(SPECIAL_USER_ID)
+            is_special_user = (
+                SPECIAL_USER_ID and str(ctx.author.id) == str(SPECIAL_USER_ID)
+            )
             # special user that has a 1 in 20 chance of getting a special response instead of a luck message
             if is_special_user:
                 if random.randint(1, 20) == 1:
                     message = random.choice(luck_messages)
-                    await channel.send(f"{message}")
+                    await channel.send(
+                        f"{message}"
+                    )
                 else:
-                    await channel.send(f"{random.choice(special_responses)}")
+                    await channel.send(
+                        f"{random.choice(special_responses)}"
+                    )
             else:
                 message = random.choice(luck_messages)
-                await channel.send(f"{message}")
-
+                await channel.send(
+                    f"{message}"
+                )
+            
 
 @bot.event
 async def on_message(message):
@@ -157,7 +156,9 @@ async def on_message(message):
                 debug_case = "mpreg"
             if response:
                 try:
-                    await message.channel.send(response)
+                    await message.channel.send(
+                        response
+                    )
                 except Exception as e:
                     print(f"[DEBUG][{debug_case}] Failed to send '{response}': {e}")
 
@@ -168,7 +169,7 @@ async def on_message(message):
                 except Exception as e:
                     print(f"[DEBUG] Failed to add reaction: {e}")
 
-# if there's an error with a command, print it out instead of crashing the bot
+#if there's an error with a command, print it out instead of crashing the bot
 @bot.event
 async def on_command_error(ctx, error):
     if isinstance(error, commands.CommandNotFound):

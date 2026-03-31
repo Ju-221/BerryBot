@@ -1,6 +1,7 @@
 
 import os
 import random
+import sys
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -59,7 +60,6 @@ async def on_ready():
                         await channel.send("all tests passed, succesfully deployed")
                     except Exception:
                         pass
-        import sys
         sys.exit(0)
     else:
         # Normal welcome message
@@ -75,6 +75,7 @@ async def on_ready():
 @bot.event
 async def on_guild_join(guild):
 
+
     channel_id = os.getenv('DISCORD_CHANNEL_ID')
     if channel_id:
         channel = guild.get_channel(int(channel_id))
@@ -83,6 +84,7 @@ async def on_guild_join(guild):
 
 @bot.command()
 async def fortune(ctx):
+
 
     # Only send output to the specified channel
     if CHANNEL_ID:
@@ -94,6 +96,7 @@ async def fortune(ctx):
 
 @bot.event
 async def on_message(message):
+
 
     # Only print messages from the specified channel
     if CHANNEL_ID and str(message.channel.id) == str(CHANNEL_ID):

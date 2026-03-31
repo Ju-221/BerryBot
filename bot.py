@@ -15,10 +15,11 @@ load_dotenv()
 # Please open this as a venv
 # Fill out the .env with the token and channel id you want the bot to respond to
 
-
+#.env stuff, see .env.example for reference
 TOKEN = os.getenv('DISCORD_TOKEN')
 CHANNEL_ID = os.getenv('DISCORD_CHANNEL_ID')
 DEBUG_MODE = os.getenv('DEBUG_MODE')
+SPECIAL_USER_ID = os.getenv('SPECIAL_USER_ID')
 try:
     BOT_ROLE_ID = int(os.getenv('BOT_ROLE_ID', '1208193044550123621'))
 except ValueError:
@@ -96,6 +97,10 @@ async def on_ready():
                     except Exception:
                         pass
 
+
+
+special_responses = ["nope", "not feeling like it"]
+
 @bot.command()
 async def fortune(ctx):
     # Prevent responding to itself or any user with the Bot role
@@ -108,7 +113,7 @@ async def fortune(ctx):
         channel = ctx.guild.get_channel(int(CHANNEL_ID))
         if channel and channel.permissions_for(ctx.guild.me).send_messages:
             is_special_user = SPECIAL_USER_ID and str(ctx.author.id) == str(SPECIAL_USER_ID)
-            #special user that has a 1 in 20 chance of getting a special response instead of a luck message
+            # special user that has a 1 in 20 chance of getting a special response instead of a luck message
             if is_special_user:
                 if random.randint(1, 20) == 1:
                     message = random.choice(luck_messages)

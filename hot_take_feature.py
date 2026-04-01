@@ -3,7 +3,7 @@ import os
 import random
 from datetime import datetime, timedelta
 
-#hot take generator: it starts a thread every 2 hours and whoever wins the thread 
+#hot take generator: it starts a thread every 2 hours and whoever wins the thread
 HOT_TAKE_HOURS = [10, 14, 18, 20]
 HOT_TAKE_DURATION = timedelta(hours=2)
 
@@ -18,11 +18,11 @@ _hot_take_state = {
 _hot_take_prompts = [
     {
         "topic": "Food",
-        "take": "Hot take: fries are better with vinegar than ketchup."
+        "take": "Hot take: Mint chocolate chip ice cream does not taste like toothpaste; it's refreshing and one of the best flavors."
     },
     {
         "topic": "Gaming",
-        "take": "Hot take: short games are usually better than 100-hour games."
+        "take": "Hot take: Some modern Pokémon games (like Sun/Moon or the Ultra versions) are actually good or at least decent, while the original Red/Blue hold up worse than people romanticize."
     },
     {
         "topic": "Music",
@@ -30,11 +30,11 @@ _hot_take_prompts = [
     },
     {
         "topic": "Tech",
-        "take": "Hot take: fewer features usually means a better product."
+        "take": "Hot take: iPhone is legitimately better than Android for most normal people"
     },
     {
-        "topic": "LGBTQ+",
-        "take": "Hot take: the sequel is sometimes better than the original."
+        "topic": "Internet",
+        "take": "Hot take: Curating a 'high-maintenance' pink aesthetic on your social meida doesn't count as a personality or a hobby"
     }
 ]
 
@@ -55,7 +55,6 @@ def ensure_loaded(state_file=None):
 
 
 def load_hot_take_state():
-    global _hot_take_state
     if not os.path.exists(_state_file):
         return
 

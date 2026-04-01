@@ -168,10 +168,7 @@ async def hottake(ctx):
     if ctx.author == bot.user:
         return
 
-    is_hot_take_admin = (
-        hasattr(ctx.author, 'roles') and
-        any(getattr(role, 'id', None) == HOT_TAKE_ADMIN_ROLE_ID for role in getattr(ctx.author, 'roles', []))
-    )
+    is_hot_take_admin = hasattr(ctx.author, 'roles') and any(getattr(role, 'id', None) == HOT_TAKE_ADMIN_ROLE_ID for role in getattr(ctx.author, 'roles', []))
     if not is_hot_take_admin:
         return
 

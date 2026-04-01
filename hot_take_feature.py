@@ -11,7 +11,8 @@ _state_file = "hot_take_state.txt"
 _state_loaded = False
 _hot_take_state = {
     "created_slots": [],
-    "active_threads": {}
+    "active_threads": {},
+    "thread_counter": 0
 }
 
 _hot_take_prompts = [
@@ -32,7 +33,7 @@ _hot_take_prompts = [
         "take": "Hot take: fewer features usually means a better product."
     },
     {
-        "topic": "Movies",
+        "topic": "LGBTQ+",
         "take": "Hot take: the sequel is sometimes better than the original."
     }
 ]
@@ -64,6 +65,7 @@ def load_hot_take_state():
         if isinstance(loaded, dict):
             _hot_take_state["created_slots"] = loaded.get("created_slots", [])
             _hot_take_state["active_threads"] = loaded.get("active_threads", {})
+            _hot_take_state["thread_counter"] = loaded.get("thread_counter", 0)
     except Exception as e:
         print(f"[HOT_TAKE] Failed to load state file: {e}")
 
@@ -114,14 +116,7 @@ async def _create_hot_take_thread(channel):
     )
     thread = await opener.create_thread(name=thread_title)
 
-    await thread.send(
-        f"{prompt['take']}\n"
-        "Scoring rules:\n"
-        "- Message length must be more than 20 and less than 1000 characters\n"
-        "- Earn a random 1-100 points per valid message\n"
-        "- Per user, awarded points are capped at 1000 per second\n"
-        "Winner is announced after 2 hours."
-    )
+    await thread.send(prompt['take'])
 
     _hot_take_state["active_threads"][str(thread.id)] = {
         "thread_id": thread.id,
@@ -159,16 +154,29 @@ async def _close_finished_hot_take_threads(bot):
             except Exception:
                 channel = None
 
+        _hot_take_state["thread_counter"] += 1
+        thread_number = _hot_take_state["thread_counter"]
+
+        if channel:
+            try:
+                await channel.edit(name=f"hot-take number {thread_number}")
+            except Exception:
+                pass
+
         scores = info.get("scores", {})
         if not scores:
             result_msg = "Hot Take finished. No valid entries this round."
         else:
-            winning_user_id, winning_points = max(
-                scores.items(), key=lambda item: item[1]
-            )
+            sorted_scores = sorted(scores.items(), key=lambda item: item[1], reverse=True)
+            winning_user_id, winning_points = sorted_scores[0]
+
+            leaderboard_lines = []
+            for rank, (uid, pts) in enumerate(sorted_scores, start=1):
+                leaderboard_lines.append(f"{rank}. <@{uid}> — **{pts}** points")
+
             result_msg = (
-                f"Hot Take winner: <@{winning_user_id}> with "
-                f"**{winning_points}** points!"
+                f"Hot Take finished! 🏆 Winner: <@{winning_user_id}> with **{winning_points}** points!\n\n"
+                "**Final Scores:**\n" + "\n".join(leaderboard_lines)
             )
 
         if channel:
@@ -240,14 +248,6 @@ async def handle_message(message):
 
     if user_id_str not in thread_info["replied_users"]:
         thread_info["replied_users"].append(user_id_str)
-
-    try:
-        await message.channel.send(
-            f"<@{user_id_str}> +{allowed_points} points "
-            f"(total: {thread_info['scores'][user_id_str]})"
-        )
-    except Exception:
-        pass
 
     save_hot_take_state()
 

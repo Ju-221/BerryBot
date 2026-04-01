@@ -138,7 +138,10 @@ async def on_message(message):
             content_lower = message.content.lower()
             response = None
             debug_case = None
-            if "maybe" in content_lower:
+            if "job" in content_lower:
+                response = "Get a job loser"
+                debug_case = "shame comp sci majors"
+            elif "maybe" in content_lower:
                 response = "maybe stfu?"
                 debug_case = "maybe"
             elif "what" in content_lower:

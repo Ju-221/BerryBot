@@ -108,11 +108,13 @@ def _get_configured_channel(bot, channel_id):
 async def _create_hot_take_thread(channel):
     prompt = random.choice(_hot_take_prompts)
     now = datetime.now()
-    thread_title = f"hot-take-{now.strftime('%m%d-%H%M')}"
+    _hot_take_state["thread_counter"] += 1
+    thread_title = f"hot-take number {_hot_take_state['thread_counter']}"
 
     opener = await channel.send(
-        f"Hot Take starts now! Topic: **{prompt['topic']}**\n"
-        "Thread lasts 2 hours. Reply in thread for points."
+        f"🔥 Every 2 hours there's a Hot Take thread where people can win points — "
+        f"the winners will win a secret prize at the end of the day! "
+        f"Topic: **{prompt['topic']}**"
     )
     thread = await opener.create_thread(name=thread_title)
 
@@ -153,15 +155,6 @@ async def _close_finished_hot_take_threads(bot):
                 channel = await bot.fetch_channel(int(thread_id))
             except Exception:
                 channel = None
-
-        _hot_take_state["thread_counter"] += 1
-        thread_number = _hot_take_state["thread_counter"]
-
-        if channel:
-            try:
-                await channel.edit(name=f"hot-take number {thread_number}")
-            except Exception:
-                pass
 
         scores = info.get("scores", {})
         if not scores:

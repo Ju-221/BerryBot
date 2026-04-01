@@ -4,6 +4,7 @@ import discord
 from discord.ext import commands
 from discord.ext import tasks
 from dotenv import load_dotenv
+import hot_take_feature
 
 # Load environment variables from .env file
 load_dotenv()
@@ -22,6 +23,10 @@ try:
     BOT_ROLE_ID = int(os.getenv('BOT_ROLE_ID', '1208193044550123621'))
 except ValueError:
     BOT_ROLE_ID = 1208193044550123621
+try:
+    HOT_TAKE_ADMIN_ROLE_ID = int(os.getenv('HOT_TAKE_ADMIN_ROLE_ID', '1122000921572933653'))
+except ValueError:
+    HOT_TAKE_ADMIN_ROLE_ID = 1122000921572933653
 
 
 # List of luck messages
@@ -69,12 +74,29 @@ async def meow_task():
                         pass
 
 
+@tasks.loop(minutes=1)
+async def hot_take_scheduler_task():
+    await hot_take_feature.scheduler_tick(bot, CHANNEL_ID)
+
+
+@tasks.loop(minutes=10)
+async def hot_take_persist_task():
+    hot_take_feature.save_hot_take_state()
+
+
 
 @bot.event
 async def on_ready():
     print(f'Logged in as {bot.user}')
+    hot_take_feature.ensure_loaded(os.getenv('HOT_TAKE_STATE_FILE', 'hot_take_state.txt'))
+
     if not meow_task.is_running():
         meow_task.start()
+    if not hot_take_scheduler_task.is_running():
+        hot_take_scheduler_task.start()
+    if not hot_take_persist_task.is_running():
+        hot_take_persist_task.start()
+
     if DEBUG_MODE:
         print("all tests passed, succesfully deployed")
     else:
@@ -122,6 +144,42 @@ async def fortune(ctx):
                 await channel.send(
                     f"{message}"
                 )
+
+
+@bot.command()
+async def points(ctx):
+    if ctx.author == bot.user:
+        return
+    if hasattr(ctx.author, 'roles') and any(getattr(role, 'id', None) == BOT_ROLE_ID for role in getattr(ctx.author, 'roles', [])):
+        return
+
+    if not hot_take_feature.is_active_hot_take_thread(ctx.channel.id):
+        return
+
+    user_points = hot_take_feature.get_user_points(ctx.channel.id, ctx.author.id)
+    if user_points is None:
+        return
+
+    await ctx.send(f"<@{ctx.author.id}> you have **{user_points}** points in this thread.")
+
+
+@bot.command()
+async def hottake(ctx):
+    if ctx.author == bot.user:
+        return
+
+    is_hot_take_admin = (
+        hasattr(ctx.author, 'roles') and
+        any(getattr(role, 'id', None) == HOT_TAKE_ADMIN_ROLE_ID for role in getattr(ctx.author, 'roles', []))
+    )
+    if not is_hot_take_admin:
+        return
+
+    started = await hot_take_feature.start_hot_take_now(bot, CHANNEL_ID)
+    if started:
+        await ctx.send("Hot take thread started.")
+    else:
+        await ctx.send("Could not start hot take thread. Check channel configuration.")
             
 
 @bot.event
@@ -132,8 +190,9 @@ async def on_message(message):
     if hasattr(message.author, 'roles') and any(getattr(role, 'id', None) == BOT_ROLE_ID for role in getattr(message.author, 'roles', [])):
         return
     # Always process commands
-
     await bot.process_commands(message)
+    await hot_take_feature.handle_message(message)
+
     # Only print messages from the specified channel (for non-command reactions)
 
     if CHANNEL_ID and str(message.channel.id) == str(CHANNEL_ID):
